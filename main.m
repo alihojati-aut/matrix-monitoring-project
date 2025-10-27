@@ -2,7 +2,7 @@ function main()
 clc; close all; format compact;
 
 %% ====================== تنظیم مسیر پروژه و پارامترها ======================
-projectRoot = "C:\Users\Ali\OneDrive\Desktop\New folder\data mining\matrix-monitoring-project"; % file location
+projectRoot = fileparts(mfilename('fullpath'));
 addpath(fullfile(projectRoot, "src"));
 
 dataPath   = fullfile(projectRoot, "data", "OnlineRetail.xlsx");
@@ -163,7 +163,7 @@ for b = 1:nB
     if exist('ipcaModel','var') && isstruct(ipcaModel) && isfield(ipcaModel,'Components')
         Wt = ipcaModel.Components;
         mu = ipcaModel.Mean;
-        W  = Wt.'; 
+        W  = Wt.';
         Xhat_i = (bsxfun(@minus, Xb_d, mu)) * (W*W.') + mu;
     else
         mu_b = mean(Xb_d,1);
@@ -179,10 +179,10 @@ end
 % FD metrics
 for b = 1:nB
     Xb = batches{b};
-    B = load(fullfile(fdDir, sprintf('fd_batch_%03d.mat', b)), 'B'); 
+    B = load(fullfile(fdDir, sprintf('fd_batch_%03d.mat', b)), 'B');
     B = double(B.B);
-    [~,~,Vb] = svd(B,'econ'); 
-    kfd = min(kRec_fd, size(Vb,2)); 
+    [~,~,Vb] = svd(B,'econ');
+    kfd = min(kRec_fd, size(Vb,2));
     Vk = Vb(:,1:kfd);
     Xhat_f = double(full(Xb)) * (Vk*Vk.');
     stage5_metrics('add','FD',b,Xb,Xhat_f,struct('ell',ell_fd,'kRec',kRec_fd), fdTime(b));

@@ -91,7 +91,8 @@ for b = 1:nB
     recErr = norm(double(full(Xb)) - Xhat_g, 'fro') / max(norm(double(full(Xb)),'fro'), eps);
     fprintf('  • GRP Batch %d: Sg=%d×%d, err=%.4f, time=%.3fs\n', ...
         b, size(Sg,1), size(Sg,2), recErr, dt);
-    save(fullfile(grpDir, sprintf('grp_batch_%03d.mat', b)), 'Sg','-v7.3');
+    save(fullfile(grpDir, sprintf('grp_batch_%03d.mat', b)), 'Sg','R','Xhat_g','-v7.3');
+
     if b==1
         disp('پیش‌نمایش 5×10 از Sg (Batch #1):');
         disp(Sg(1:min(5,size(Sg,1)), 1:min(10,size(Sg,2))));
@@ -147,23 +148,31 @@ disp("================================================================");
 disp("مرحله 5: محاسبه و ذخیره شاخص‌ها (همه روش‌ها)");
 
 stage5_metrics('init', reportsDir, timestamp);
-
+clear R
 % GRP metrics
+
 for b = 1:nB
     Xb = batches{b};
-    Sg = load(fullfile(grpDir, sprintf('grp_batch_%03d.mat', b)), 'Sg');  Sg = Sg.Sg;
-    Xhat_g = Sg * R.';                     % بازسازی
-    stage5_metrics('add','GRP',b,Xb,Xhat_g,struct('d',d_grp), grpTime(b));
+    S = load(fullfile(grpDir, sprintf('grp_batch_%03d.mat', b)), 'Sg','R','Xhat_g');
+
+    if isfield(S, 'Xhat_g')
+        Xhat_g = S.Xhat_g;
+    else
+        Xhat_g = S.Sg * S.R.';
+    end
+
+    stage5_metrics('add','GRP', b, Xb, Xhat_g, struct('d', d_grp), grpTime(b));
 end
+
 
 % IPCA metrics
 for b = 1:nB
     Xb   = batches{b};
     Xb_d = double(full(Xb));
     if exist('ipcaModel','var') && isstruct(ipcaModel) && isfield(ipcaModel,'Components')
-        Wt = ipcaModel.Components;
-        mu = ipcaModel.Mean;
-        W  = Wt.';
+        Wt = ipcaModel.Components;         % (k × n)
+        mu = ipcaModel.Mean;               % (1 × n)
+        W  = Wt.';                         % (n × k)
         Xhat_i = (bsxfun(@minus, Xb_d, mu)) * (W*W.') + mu;
     else
         mu_b = mean(Xb_d,1);
@@ -179,10 +188,10 @@ end
 % FD metrics
 for b = 1:nB
     Xb = batches{b};
-    B = load(fullfile(fdDir, sprintf('fd_batch_%03d.mat', b)), 'B');
+    B = load(fullfile(fdDir, sprintf('fd_batch_%03d.mat', b)), 'B'); 
     B = double(B.B);
-    [~,~,Vb] = svd(B,'econ');
-    kfd = min(kRec_fd, size(Vb,2));
+    [~,~,Vb] = svd(B,'econ'); 
+    kfd = min(kRec_fd, size(Vb,2)); 
     Vk = Vb(:,1:kfd);
     Xhat_f = double(full(Xb)) * (Vk*Vk.');
     stage5_metrics('add','FD',b,Xb,Xhat_f,struct('ell',ell_fd,'kRec',kRec_fd), fdTime(b));

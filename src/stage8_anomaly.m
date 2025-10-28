@@ -115,7 +115,7 @@ function S = safe_try_load(matPath, varList, retries, delaySec)
 end
 
 function ev = hit_at_k(scores, injIdx, m, Ks)
-    [~, ord] = sort(scores, 'descend');   % ناهنجارتر ⇒ امتیاز بزرگ‌تر
+    [~, ord] = sort(scores, 'descend');
     inj = false(m,1); inj(injIdx) = true;
     ev = struct();
     for i = 1:numel(Ks)

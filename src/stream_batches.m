@@ -11,6 +11,6 @@ function batches = stream_batches(X, batchSize)
     for i = 1:nB
         r1 = starts(i);
         r2 = min(r1 + batchSize - 1, m);
-        batches{i} = X(r1:r2, :);   % زیرماتریس سطری
+        batches{i} = X(r1:r2, :);
     end
 end

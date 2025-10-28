@@ -18,7 +18,7 @@ function [Xb_mod, injIdx, Xinj] = inject_anomalies_batch(Xb, colFreqGlobal, nAno
         ii = [ii; repmat(r, numel(pick), 1)]; %#ok<AGROW>
         jj = [jj; pick(:)]; %#ok<AGROW>
     end
-    Xinj = sparse(ii, jj, 1.0, nAnom, n);   % nAnom × n
+    Xinj = sparse(ii, jj, 1.0, nAnom, n);
 
     Xb_mod = [Xb; Xinj];
     injIdx = (mb+1 : mb+nAnom).';
